@@ -19,14 +19,14 @@ Smegn MultiplyMatrices(const Smegn& firstMatrix, const Smegn& secondMatrix, int 
 
 Smegn BinpowMatrices(const Smegn& matrix, int power, int mod);
 
-int64_t CountNumberPaths(const std::vector<std::string>& paths, int pathLength, int numberVertices, int startVertex, int mod);
+int CountNumberPaths(const std::vector<std::string>& paths, int pathLength, int numberVertices, int startVertex, int mod);
 
-void WriteResult(int64_t result, std::ostream& outputStream = std::cout);
+void WriteResult(int result, std::ostream& outputStream = std::cout);
 
 int main() {
     InputData inputData = ReadInput();
     const int mod = 1000000007;
-    int64_t result = CountNumberPaths(inputData.paths, inputData.pathLength, inputData.numberVertices, 0, mod);
+    int result = CountNumberPaths(inputData.paths, inputData.pathLength, inputData.numberVertices, 0, mod);
     WriteResult(result);
     return 0;
 }

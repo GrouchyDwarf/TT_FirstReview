@@ -2,31 +2,36 @@
 #include<string>
 #include<vector>
 
-typedef std::vector<std::vector<int>> Smegn;
+typedef std::vector<std::vector<int>> Matrix;
+
+struct Edge {
+    int outgoingVertex;
+    int incomingVertex;
+};
 
 struct InputData {
     int numberVertices;
-    int numberPaths;
     int pathLength;
-    std::vector<std::string> paths;
+    std::vector<Edge> edges;
 };
 
 InputData ReadInput(std::istream& inputStream = std::cin);
 
-Smegn ConvertToSmegn(const std::vector<std::string>& paths, int numberVertices);
+Matrix ConvertEdgesToAdjacencyMatrix(const std::vector<Edge>& edges, int numberVertices);
 
-Smegn MultiplyMatrices(const Smegn& firstMatrix, const Smegn& secondMatrix, int mod);
+const int module = 1000000007;
 
-Smegn BinpowMatrices(const Smegn& matrix, int power, int mod);
+Matrix MultiplyMatrices(const Matrix& firstMatrix, const Matrix& secondMatrix);
 
-int CountNumberPaths(const std::vector<std::string>& paths, int pathLength, int numberVertices, int startVertex, int mod);
+Matrix RaiseMatrixToPower(const Matrix& matrix, int power);
+
+int CountNumberPaths(InputData inputData, int startVertex);
 
 void WriteResult(int result, std::ostream& outputStream = std::cout);
 
 int main() {
     InputData inputData = ReadInput();
-    const int mod = 1000000007;
-    int result = CountNumberPaths(inputData.paths, inputData.pathLength, inputData.numberVertices, 0, mod);
+    const int result = CountNumberPaths(inputData, 0);
     WriteResult(result);
     return 0;
 }

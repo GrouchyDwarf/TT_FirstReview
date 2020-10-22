@@ -25,12 +25,12 @@ Matrix MultiplyMatrices(const Matrix& firstMatrix, const Matrix& secondMatrix);
 
 Matrix RaiseMatrixToPower(const Matrix& matrix, int power);
 
-int CountNumberPaths(InputData inputData, int startVertex);
+int CountNumberPaths(const InputData& inputData, int startVertex);
 
 void WriteResult(int result, std::ostream& outputStream = std::cout);
 
 int main() {
-    InputData inputData = ReadInput();
+    const InputData inputData = ReadInput();
     const int result = CountNumberPaths(inputData, 0);
     WriteResult(result);
     return 0;

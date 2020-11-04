@@ -75,7 +75,7 @@ Matrix MultiplyMatrices(const Matrix& firstMatrix, const Matrix& secondMatrix) {
         for (int j = 0; j < secondMatrix[0].size(); ++j) {
             multipliedMatrix[i][j] = 0;
             for (int k = 0; k < firstMatrix[0].size(); ++k) {
-                //в long не всегда влазит
+                //does not always fit into long
                 multipliedMatrix[i][j] = (multipliedMatrix[i][j] +
                     static_cast<int64_t>(firstMatrix[i][k]) * secondMatrix[k][j])
                     % MODULUS;

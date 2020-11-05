@@ -5,6 +5,7 @@
 typedef std::vector<std::vector<int>> Matrix;
 
 const int MODULUS = 1000000007;
+const int INDEXING_SHIFT = 1;
 
 struct Edge {
     int outgoingVertex;
@@ -23,31 +24,13 @@ GraphParameters ReadInput(std::istream& inputStream = std::cin) {
     inputStream >> graphParameters.numberVertices;
     inputStream >> numberEdges;
     inputStream >> graphParameters.pathLength;
-    inputStream.ignore();
-    try {
-        if (numberEdges < 0) {
-            throw -1;
-        }
-    }
-    catch (int a) {
-        std::cerr << "Number of edges can't be negative!!!\n";
-        exit(-1);
+    if (numberEdges < 0) {
+        throw std::invalid_argument("Number of edges can't be negative!!!");
     }
     graphParameters.edges.resize(numberEdges);
     for (int i = 0; i < numberEdges; ++i) {
         inputStream >> graphParameters.edges[i].outgoingVertex;
         inputStream >> graphParameters.edges[i].incomingVertex;
-        
-        try {
-            if (--graphParameters.edges[i].outgoingVertex < 0 || --graphParameters.edges[i].incomingVertex < 0) {
-                throw - 1;
-            }
-        }
-        catch (int a) {
-            std::cerr << "Vertex can't be less than one!!!\n";
-            exit(-1);
-        }
-        inputStream.ignore();
     }
     return graphParameters;
 }
@@ -55,19 +38,20 @@ GraphParameters ReadInput(std::istream& inputStream = std::cin) {
 Matrix ConvertEdgesToAdjacencyMatrix(const std::vector<Edge>& edges, const int numberVertices) {
     Matrix matrix(numberVertices, std::vector<int>(numberVertices, 0));
     for (int i = 0; i < edges.size(); ++i) {
+        if (edges[i].outgoingVertex < 0 || edges[i].outgoingVertex >= numberVertices) {
+            throw std::invalid_argument("Such outgoing vertex doesn't exist!!!");
+        }
+        if (edges[i].incomingVertex < 0 || edges[i].incomingVertex >= numberVertices) {
+            throw std::invalid_argument("Such incoming vertex doesn't exist!!!");
+        }
         matrix[edges[i].outgoingVertex][edges[i].incomingVertex] += 1;
     }
     return matrix;
 }
 
 Matrix MultiplyMatrices(const Matrix& firstMatrix, const Matrix& secondMatrix) {
-    try {
-        if (firstMatrix[0].size() != secondMatrix.size()) {
-            throw -1;
-        }
-    } catch (int a) {
-        std::cerr << "Incompatible matrix sizes!!!\n";
-        exit(-1);
+    if (firstMatrix[0].size() != secondMatrix.size()) {
+        throw std::invalid_argument("Incompatible matrix sizes!!!");
     }
     Matrix multipliedMatrix(firstMatrix.size());
     for (int i = 0; i < firstMatrix.size(); ++i) {
@@ -87,43 +71,42 @@ Matrix MultiplyMatrices(const Matrix& firstMatrix, const Matrix& secondMatrix) {
 
 Matrix RaiseMatrixToPower(const Matrix& matrix, const int power) {
     if (power == 0) {
-        Matrix E(matrix.size());
+        Matrix identityMatrix(matrix.size());
         for (int i = 0; i < matrix.size(); ++i) {
-            E[i].resize(matrix[i].size());
+            identityMatrix[i].resize(matrix[i].size());
             for (int j = 0; j < matrix[i].size(); ++j) {
                 if (i == j) {
-                    E[i][j] = 1;
+                    identityMatrix[i][j] = 1;
                 } else {
-                    E[i][j] = 0;
+                    identityMatrix[i][j] = 0;
                 }
             }
         }
-        return E;
+        return identityMatrix;
     }
     if (power % 2 == 0) {
-        return RaiseMatrixToPower(MultiplyMatrices(matrix, matrix), power / 2);
+        const Matrix multipliedMatrix = MultiplyMatrices(matrix, matrix);
+        const Matrix raisedToPowerMatrix = RaiseMatrixToPower(multipliedMatrix, power / 2);
+        return raisedToPowerMatrix;
     } else {
-        return MultiplyMatrices(RaiseMatrixToPower(matrix, power - 1), matrix);
+        const Matrix raisedToPowerMatrix = RaiseMatrixToPower(matrix, power - 1);
+        const Matrix multipliedMatrix = MultiplyMatrices(raisedToPowerMatrix, matrix);
+        return multipliedMatrix;
     }
 }
 
-int CountNumberPaths(const GraphParameters& graphParameters, const int startVertex) {
-    try {
-        if (graphParameters.numberVertices < 1) {
-            throw -1;
-        }
-        if (graphParameters.pathLength < 0) {
-            throw -2;
-        }
+int CountNumberPaths(GraphParameters graphParameters, const int startVertex) {
+    if (graphParameters.numberVertices < 1) {
+        throw std::invalid_argument("Number of vertices can't be less than one - labyrinth does not exist!!!");
     }
-    catch(int a) {
-        if (a == -1) {
-            std::cerr << "Number of vertices can't be less than one - labyrinth does not exist!!!";
-            exit(-1);
-        }
-        else if (a == -2) {
-            std::cerr << "Path length can't be negative!!!";
-            exit(-1);
+    if (graphParameters.pathLength < 0) {
+        throw std::invalid_argument("Path length can't be negative!!!");
+    }
+    for (int i = 0; i < graphParameters.edges.size(); ++i) {
+        graphParameters.edges[i].outgoingVertex -= INDEXING_SHIFT;
+        graphParameters.edges[i].incomingVertex -= INDEXING_SHIFT;
+        if (graphParameters.edges[i].outgoingVertex < 0 || graphParameters.edges[i].incomingVertex < 0) {
+            throw std::invalid_argument("Vertex can't be negative!!!");
         }
     }
     Matrix matrix = ConvertEdgesToAdjacencyMatrix(graphParameters.edges, graphParameters.numberVertices);
@@ -140,8 +123,14 @@ void WriteResult(const int result, std::ostream& outputStream = std::cout) {
 }
 
 int main() {
-    const GraphParameters graphParameters = ReadInput();
-    const int numberPathsFromFirstVertex = CountNumberPaths(graphParameters, 0);
-    WriteResult(numberPathsFromFirstVertex);
+    try {
+        const GraphParameters graphParameters = ReadInput();
+        const int numberPathsFromFirstVertex = CountNumberPaths(graphParameters, 0);
+        WriteResult(numberPathsFromFirstVertex);
+    }
+    catch (const std::exception& e) {
+        std::cerr << "Caught:" << e.what() << std::endl;
+        return -1;
+    }
     return 0;
 }
